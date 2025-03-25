@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 image_path = sys.argv[1]
-model = tf.keras.models.load_model('../../models/dyslexia_scanner_new.keras')
+model = tf.keras.models.load_model('../../models/handwriting.keras')
 
 img = cv2.imread(image_path)
 resize = tf.image.resize(img, (256, 256))

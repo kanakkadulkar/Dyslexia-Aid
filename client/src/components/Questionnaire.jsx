@@ -22,7 +22,7 @@ const Questionnaire = () => {
     const handleChange = (index, value) => {
         setResponses((prev) => ({
             ...prev,
-            [index]: value,
+            [index]: value === 'yes',
         }));
     };
 
@@ -30,10 +30,22 @@ const Questionnaire = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            await axios.post('/api/analysis/questionnaire', { responses }, {
-                headers: { 'x-auth-token': token },
-            });
-            navigate('/upload');
+            const result = await axios.post('/api/analysis/questionnaire', 
+                { responses }, 
+                { headers: { 'x-auth-token': token } }
+            );
+
+            if (result.data.shouldProceed) {
+                const proceed = window.confirm(
+                    `Based on your responses, there's a ${Math.round(result.data.probability * 100)}% 
+                     initial probability of dyslexia. Would you like to proceed with a detailed assessment?`
+                );
+                if (proceed) {
+                    navigate('/video-recording');
+                }
+            } else {
+                navigate('/video-recording');
+            }
         } catch (err) {
             alert('Submission failed: ' + err.message);
         }
@@ -41,50 +53,42 @@ const Questionnaire = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-300 to-purple-400 px-4">
-            <div className="max-w-2xl w-full bg-white p-8 rounded-3xl shadow-xl transition-transform duration-300 transform  mt-4 mb-4">
+            <div className="max-w-2xl w-full bg-white p-8 rounded-3xl shadow-xl transition-transform duration-300 transform mt-4 mb-4">
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-8">
                     Could it be Dyslexia?
                 </h1>
-                <p className="text-center text-gray-600 mb-6">Select 'Yes' for the statements that describe your child.</p>
+                <p className="text-center text-gray-600 mb-6">Select 'Yes' for the statements that apply.</p>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {questions.map((question, index) => (
-                        <div key={index} className="p-3 bg-white shadow-md rounded-md transition transform hover:-translate-y-2 hover:shadow-lg">
-                            <label className="block text-md font-medium text-gray-700">{question}</label>
-                            <div className="flex justify-center space-x-6 mt-3">
-                                <label className="flex items-center space-x-2 cursor-pointer">
+                        <div key={index} className="p-3 bg-white shadow-md rounded-md transition transform hover:-translate-y-1 hover:shadow-lg">
+                            <label className="block text-md font-medium text-gray-700 mb-2">{question}</label>
+                            <div className="flex space-x-4">
+                                <label className="inline-flex items-center">
                                     <input
                                         type="radio"
-                                        name={`q${index}`}
-                                        value="Yes"
-                                        onChange={() => handleChange(index, "Yes")}
-                                        required
-                                        className="hidden peer"
+                                        name={`question-${index}`}
+                                        value="yes"
+                                        onChange={(e) => handleChange(index, e.target.value)}
+                                        className="form-radio text-blue-600"
                                     />
-                                    <div className="w-6 h-6 border-2 border-blue-500 rounded-full flex items-center justify-center peer-checked:bg-blue-500 peer-checked:border-blue-700 transition-all duration-200">
-                                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                                    </div>
-                                    <span className="text-gray-700 font-semibold">Yes</span>
+                                    <span className="ml-2">Yes</span>
                                 </label>
-                                <label className="flex items-center space-x-2 cursor-pointer">
+                                <label className="inline-flex items-center">
                                     <input
                                         type="radio"
-                                        name={`q${index}`}
-                                        value="No"
-                                        onChange={() => handleChange(index, "No")}
-                                        required
-                                        className="hidden peer"
+                                        name={`question-${index}`}
+                                        value="no"
+                                        onChange={(e) => handleChange(index, e.target.value)}
+                                        className="form-radio text-blue-600"
                                     />
-                                    <div className="w-6 h-6 border-2 border-red-500 rounded-full flex items-center justify-center peer-checked:bg-red-500 peer-checked:border-red-700 transition-all duration-200">
-                                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                                    </div>
-                                    <span className="text-gray-700 font-semibold">No</span>
+                                    <span className="ml-2">No</span>
                                 </label>
                             </div>
                         </div>
                     ))}
                     <button
                         type="submit"
-                        className="w-full h-12 px-4 border border-transparent rounded-full shadow-sm text-lg font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 transition-transform duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
                     >
                         Submit
                     </button>

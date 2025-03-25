@@ -14,9 +14,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class DyslexiaAnalyzer:
-    def __init__(self):
+    def __init__(self, reference_text=None):
         self.recognizer = sr.Recognizer()
-        self.reference_text = "The dog barked at the cat."
+        self.reference_text = reference_text or "The quick brown fox jumps over the lazy dog. She sells seashells by the seashore. Peter Piper picked a peck of pickled peppers."
         logger.info("Speech recognition initialized.")
 
     def record_audio(self, duration=10, sample_rate=16000, filename="temp_audio.wav"):
@@ -116,11 +116,13 @@ class DyslexiaAnalyzer:
         else:
             return "Low Probability of Dyslexia"
 
-def main(audio_path=None):
-    analyzer = DyslexiaAnalyzer()
-    results = analyzer.analyze_speech(audio_path)
-    print(json.dumps(results))
-
 if __name__ == "__main__":
-    audio_path = sys.argv[1] if len(sys.argv) > 1 else None
-    main(audio_path)
+    try:
+        file_path = sys.argv[1]
+        reference_text = sys.argv[2] if len(sys.argv) > 2 else None
+        
+        analyzer = DyslexiaAnalyzer(reference_text=reference_text)
+        results = analyzer.analyze_speech(file_path)
+        print(json.dumps(results))
+    except Exception as e:
+        print(json.dumps({"error": str(e)}))
